@@ -1,7 +1,8 @@
 // components/Sidebar.tsx
-// components/Sidebar.tsx - MODERNIZADO
+// components/Sidebar.tsx
 import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 interface Props {
   onSelect: (section: 'summary' | 'profile' | 'logins') => void;
@@ -16,12 +17,31 @@ export default function Sidebar({ onSelect, currentSection }: Props) {
     currentSection === section ? 'bg-indigo-50 text-indigo-700 border-l-4 border-indigo-600' : 'text-gray-700 hover:bg-gray-100';
 
   return (
-    <aside className="w-full md:w-64 bg-white border-r border-gray-200">
+    <aside className="w-full md:w-64 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-6 border-b border-gray-200">
-        <h2 className="text-lg font-semibold">{t('dashboard')}</h2>
+        <Link href="/" legacyBehavior>
+          <a className="flex items-center text-lg font-semibold text-indigo-600">
+            <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            {t('app_name')}
+          </a>
+        </Link>
       </div>
       
-      <nav className="py-4">
+      <div className="p-6 border-b border-gray-200 flex items-center">
+        <img 
+          src="https://via.placeholder.com/40" 
+          alt="User" 
+          className="rounded-full w-10 h-10 mr-3"
+        />
+        <div>
+          <p className="font-medium text-gray-900 truncate">Nombre Usuario</p>
+          <p className="text-sm text-gray-500 truncate">usuario@email.com</p>
+        </div>
+      </div>
+      
+      <nav className="py-4 flex-grow">
         <button 
           onClick={() => onSelect('summary')} 
           className={`w-full text-left px-6 py-3 flex items-center ${isActive('summary')}`}
