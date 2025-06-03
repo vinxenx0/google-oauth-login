@@ -4,5 +4,12 @@
   "login": "Login",
   "logout": "Logout",
   "dashboard": "Dashboard",
-  "home": "Home"
+  "home": "Home",
+  "profile_info": "Profile Information",
+  "login_history": "Login History",
+  "created_at": "Account Created At",
+  "last_login": "Last Login",
+  "loading": "Loading...",
+  "about": "About",
+  "terms": "Terms & Conditions"
 }

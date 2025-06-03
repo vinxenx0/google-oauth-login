@@ -3,5 +3,12 @@
   "login": "Inicia sesión",
   "logout": "Cerrar sesión",
   "dashboard": "Panel",
-  "home": "Inicio"
+  "home": "Inicio",
+  "profile_info": "Información del Perfil",
+  "login_history": "Historial de Acceso",
+  "created_at": "Cuenta creada el",
+  "last_login": "Último acceso",
+  "loading": "Cargando...",
+  "about": "Acerca de",
+  "terms": "Términos y Condiciones"
 }
