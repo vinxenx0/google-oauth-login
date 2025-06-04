@@ -1,17 +1,18 @@
 
 // pages/_app.tsx
 
-// frontend/pages/_app.tsx
-import { AuthProvider } from '../hooks/useAuth';
-import Layout from '../components/Layout';
+// pages/_app.tsx
 import '../styles/globals.css';
+import type { AppProps } from 'next/app';
+import { appWithTranslation } from 'next-i18next';
+import Layout from '../components/Layout';
 
-export default function App({ Component, pageProps }) {
+function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <AuthProvider>
-      <Layout>
-        <Component {...pageProps} />
-      </Layout>
-    </AuthProvider>
+    <Layout>
+      <Component {...pageProps} />
+    </Layout>
   );
 }
+
+export default appWithTranslation(MyApp);

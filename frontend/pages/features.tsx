@@ -1,7 +1,9 @@
 // pages/features.tsx
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+
 import Link from 'next/link';
+import Layout from '../components/Layout';
 
 export default function FeaturesPage() {
   const { t } = useTranslation('common');
@@ -64,6 +66,7 @@ export default function FeaturesPage() {
   ];
 
   return (
+  
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center">
@@ -110,6 +113,7 @@ export default function FeaturesPage() {
 
   );
 }
+
 
 export const getStaticProps = async ({ locale }: { locale: string }) => ({
   props: {

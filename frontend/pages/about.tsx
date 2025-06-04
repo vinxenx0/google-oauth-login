@@ -1,11 +1,13 @@
 // pages/about.tsx
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import Layout from '../components/Layout';
 
 export default function About() {
   const { t } = useTranslation('common');
   
   return (
+  
     <div className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
       <div className="text-center">
         <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
@@ -80,6 +82,7 @@ export default function About() {
         </div>
       </div>
     </div>
+ 
   );
 }
 

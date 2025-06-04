@@ -21,7 +21,7 @@ export default function Dashboard() {
     "summary"
   );
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t } = useTranslation("common");
   const [accessHistory, setAccessHistory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
