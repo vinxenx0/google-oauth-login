@@ -1,65 +1,75 @@
-from fastapi import APIRouter, Request
+# /backend/auth.py
+import uuid
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 import os
 import httpx
-from dotenv import load_dotenv
-
-load_dotenv()
-
-router = APIRouter()
-
-CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-REDIRECT_URI = "http://localhost:8000/auth/callback"
-
-
-@router.get("/auth/login")
-def login():
-    return RedirectResponse(
-        f"https://accounts.google.com/o/oauth2/v2/auth"
-        f"?client_id={CLIENT_ID}"
-        f"&redirect_uri={REDIRECT_URI}"
-        f"&response_type=code"
-        f"&scope=openid%20email%20profile"
-    )
-
-
 from datetime import datetime
 import json
 from sqlalchemy.orm import Session
+from schemas import UserLogin, UserRegister
+from utils import hash_password, verify_password
 from db import SessionLocal
-from models import User
-@router.get("/auth/callback")
-async def callback(request: Request):
-    code = request.query_params.get("code")
+from models import User, UserRole
+from dotenv import load_dotenv
+from config import settings
+from db import get_db
+from models import User, LoginHistory
+from dependencies import get_current_user 
 
+
+router = APIRouter()
+# /backend/auth.py
+
+@router.get("/auth/login")
+def login():
+    url = (
+        "https://accounts.google.com/o/oauth2/v2/auth"
+        f"?client_id={settings.GOOGLE_CLIENT_ID}"
+        f"&redirect_uri={settings.GOOGLE_REDIRECT_URI}"
+        "&response_type=code"
+        "&scope=openid%20email%20profile"
+    )
+    return RedirectResponse(url)
+
+
+@router.get("/auth/callback")
+async def callback(request: Request, db: Session = Depends(get_db)):
+    code = request.query_params.get("code")
+    if not code:
+        raise HTTPException(status_code=400, detail="Missing code")
+    # 1) Pedir token a Google:
     async with httpx.AsyncClient() as client:
         token_res = await client.post(
             "https://oauth2.googleapis.com/token",
             data={
                 "code": code,
-                "client_id": CLIENT_ID,
-                "client_secret": CLIENT_SECRET,
-                "redirect_uri": REDIRECT_URI,
-                "grant_type": "authorization_code"
+                "client_id": settings.GOOGLE_CLIENT_ID,
+                "client_secret": settings.GOOGLE_CLIENT_SECRET,
+                "redirect_uri": settings.GOOGLE_REDIRECT_URI,
+                "grant_type": "authorization_code",
             },
-            headers={"Content-Type": "application/x-www-form-urlencoded"}
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=10,
         )
+        if token_res.status_code != 200:
+            raise HTTPException(status_code=500, detail="Error obteniendo token")
         token_data = token_res.json()
+        access_token = token_data.get("access_token")
         id_token = token_data.get("id_token")
 
         userinfo_res = await client.get(
             "https://www.googleapis.com/oauth2/v3/userinfo",
-            headers={"Authorization": f"Bearer {token_data['access_token']}"}
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=10,
         )
+        if userinfo_res.status_code != 200:
+            raise HTTPException(status_code=500, detail="Error obteniendo userinfo")
         google_user = userinfo_res.json()
 
-    # Guardar/actualizar usuario en DB
-    db: Session = SessionLocal()
-    user = db.query(User).filter(User.id == google_user["sub"]).first()
-
+    # 2) Registrar o actualizar usuario en DB:
     now = datetime.utcnow()
-
+    user = db.query(User).filter(User.id == google_user["sub"]).first()
     if user:
         user.last_login = now
     else:
@@ -67,19 +77,35 @@ async def callback(request: Request):
             id=google_user["sub"],
             name=google_user["name"],
             email=google_user["email"],
-            picture=google_user["picture"],
+            picture=google_user.get("picture"),
+            role=UserRole.user,              # rol por defecto
             created_at=now,
             last_login=now
         )
         db.add(user)
-
     db.commit()
-    db.close()
 
+    # 3) Registrar historial de accesos:
+    login_record = LoginHistory(
+        user_id=user.id,
+        ip_address=request.client.host,
+        login_method="google"
+    )
+    db.add(login_record)
+    db.commit()
+
+    # 4) Armar respuesta redirigiendo e insertando cookies
     response = RedirectResponse(url="http://localhost:3000/dashboard")
-    response.set_cookie("id_token", id_token, httponly=True)
-    response.set_cookie("user_info", json.dumps(google_user), httponly=True)
-
+    response.set_cookie("id_token", id_token, httponly=True, samesite="lax")
+    response.set_cookie("user_info", json.dumps({
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "picture": user.picture,
+        "role": user.role.value,
+        "created_at": user.created_at.isoformat(),
+        "last_login": user.last_login.isoformat()
+    }), httponly=True, samesite="lax")
     return response
 
 
@@ -94,4 +120,98 @@ def logout():
     response = RedirectResponse(url="/")
     response.delete_cookie("id_token")
     response.delete_cookie("user_info")
+    return response
+
+
+
+@router.post("/auth/register")
+def register_user(data: UserRegister, db: Session = Depends(get_db)):
+    if db.query(User).filter_by(email=data.email).first():
+        raise HTTPException(status_code=400, detail="Email ya registrado")
+    new_user = User(
+        id=str(uuid.uuid4()),
+        email=data.email,
+        name=data.name,
+        password_hash=hash_password(data.password),
+        auth_method="local"
+    )
+    db.add(new_user)
+    db.commit()
+    return {"message": "Usuario creado correctamente"}
+
+@router.post("/auth/login")
+def login_user(data: UserLogin, request: Request, db: Session = Depends(get_db)):
+    user = db.query(User).filter_by(email=data.email, auth_method="local").first()
+    if not user or not verify_password(data.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas")
+
+    now = datetime.utcnow()
+    user.last_login = now
+    db.commit()
+
+    login_record = LoginHistory(
+        user_id=user.id,
+        ip_address=request.client.host,
+        login_method="local"
+    )
+    db.add(login_record)
+    db.commit()
+
+    response = RedirectResponse(url="http://localhost:3000/dashboard")
+    response.set_cookie("user_info", json.dumps({
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "picture": user.picture,
+        "role": user.role.value,
+        "created_at": user.created_at.isoformat(),
+        "last_login": user.last_login.isoformat()
+    }), httponly=True, samesite="lax")
+    return response
+
+
+
+@router.post("/auth/register")
+def register_user(data: UserRegister, db: Session = Depends(get_db)):
+    if db.query(User).filter_by(email=data.email).first():
+        raise HTTPException(status_code=400, detail="Email ya registrado")
+    new_user = User(
+        id=str(uuid.uuid4()),
+        email=data.email,
+        name=data.name,
+        password_hash=hash_password(data.password),
+        auth_method="local"
+    )
+    db.add(new_user)
+    db.commit()
+    return {"message": "Usuario creado correctamente"}
+
+@router.post("/auth/login")
+def login_user(data: UserLogin, request: Request, db: Session = Depends(get_db)):
+    user = db.query(User).filter_by(email=data.email, auth_method="local").first()
+    if not user or not verify_password(data.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas")
+
+    now = datetime.utcnow()
+    user.last_login = now
+    db.commit()
+
+    login_record = LoginHistory(
+        user_id=user.id,
+        ip_address=request.client.host,
+        login_method="local"
+    )
+    db.add(login_record)
+    db.commit()
+
+    response = RedirectResponse(url="http://localhost:3000/dashboard")
+    response.set_cookie("user_info", json.dumps({
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "picture": user.picture,
+        "role": user.role.value,
+        "created_at": user.created_at.isoformat(),
+        "last_login": user.last_login.isoformat()
+    }), httponly=True, samesite="lax")
     return response

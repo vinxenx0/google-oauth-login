@@ -34,6 +34,8 @@ export default function Dashboard() {
       .finally(() => setIsLoading(false));
   }, [router]);
 
+  
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return t('not_available');
     const date = new Date(dateString);
@@ -151,6 +153,8 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+
+          
         );
       default:
         return null;

@@ -1,14 +1,19 @@
 {
-  "welcome": "Bienvenido a nuestra aplicación",
-  "login": "Inicia sesión",
+  "home": "Inicio",
+  "login": "Iniciar sesión",
   "logout": "Cerrar sesión",
   "dashboard": "Panel",
-  "home": "Inicio",
+  "about": "Acerca de",
+  "terms": "Términos y Condiciones",
+  "welcome": "¡Bienvenido a la aplicación!",
+  "summary": "Resumen",
+  "profile": "Perfil",
+  "access": "Historial de Accesos",
   "profile_info": "Información del Perfil",
   "login_history": "Historial de Acceso",
   "created_at": "Cuenta creada el",
   "last_login": "Último acceso",
+  "role": "Rol",
   "loading": "Cargando...",
-  "about": "Acerca de",
-  "terms": "Términos y Condiciones"
+  "admin_panel": "Panel de Administración"
 }
