@@ -1,0 +1,19 @@
+{
+  "home": "Home",
+  "login": "Login",
+  "logout": "Logout",
+  "dashboard": "Dashboard",
+  "about": "About",
+  "terms": "Terms & Conditions",
+  "welcome": "Welcome to the app!",
+  "summary": "Summary",
+  "profile": "Profile",
+  "access": "Access History",
+  "profile_info": "Profile Information",
+  "login_history": "Login History",
+  "created_at": "Account Created At",
+  "last_login": "Last Login",
+  "role": "Role",
+  "loading": "Loading...",
+  "admin_panel": "Admin Panel"
+}

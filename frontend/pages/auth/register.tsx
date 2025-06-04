@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const validateForm = () => {
@@ -31,6 +32,7 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     if (!validateForm()) return;
 
@@ -44,7 +46,15 @@ export default function RegisterPage() {
       });
 
       if (response.ok) {
-        router.replace("/dashboard");
+        setSuccess("¡Registro exitoso! Redirigiendo al panel...");
+        setEmail("");
+        setPassword("");
+        setName("");
+
+        // Mostrar el mensaje de éxito y redirigir tras 2 segundos
+        setTimeout(() => {
+          router.replace("/dashboard");
+        }, 2000);
       } else {
         const data = await response.json();
         setError(data.message || "Error al registrarse.");
@@ -61,7 +71,10 @@ export default function RegisterPage() {
     <>
       <Head>
         <title>Registro | MyApp</title>
-        <meta name="description" content="Crea una cuenta en MyApp para acceder a todas tus herramientas" />
+        <meta
+          name="description"
+          content="Crea una cuenta en MyApp para acceder a todas tus herramientas"
+        />
       </Head>
 
       <div className="min-h-screen flex">
@@ -69,20 +82,45 @@ export default function RegisterPage() {
         <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 bg-gray-50">
           <div className="max-w-md w-full">
             <div className="mb-12 text-center">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Crea una cuenta</h1>
-              <p className="text-gray-600">Comienza a gestionar tus servicios fácilmente</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Crea una cuenta
+              </h1>
+              <p className="text-gray-600">
+                Comienza a gestionar tus servicios fácilmente
+              </p>
             </div>
 
-            <form onSubmit={handleRegister} className="bg-white p-8 rounded-xl shadow-sm border border-gray-200" noValidate>
+            <form
+              onSubmit={handleRegister}
+              className="bg-white p-8 rounded-xl shadow-sm border border-gray-200"
+              noValidate
+            >
               {error && (
-                <div role="alert" className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
+                <div
+                  role="alert"
+                  className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm"
+                >
                   {error}
+                </div>
+              )}
+
+              {success && (
+                <div
+                  role="status"
+                  className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm"
+                >
+                  {success}
                 </div>
               )}
 
               <div className="space-y-5">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Nombre completo
+                  </label>
                   <input
                     id="name"
                     type="text"
@@ -94,7 +132,12 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Correo electrónico
+                  </label>
                   <input
                     id="email"
                     type="email"
@@ -106,7 +149,12 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
+                    Contraseña
+                  </label>
                   <input
                     id="password"
                     type="password"
@@ -131,7 +179,10 @@ export default function RegisterPage() {
               <div className="mt-6 text-center">
                 <p className="text-gray-600 text-sm">
                   ¿Ya tienes una cuenta?{" "}
-                  <a href="/auth/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+                  <a
+                    href="/auth/login"
+                    className="font-medium text-indigo-600 hover:text-indigo-500"
+                  >
                     Inicia sesión
                   </a>
                 </p>
@@ -148,9 +199,12 @@ export default function RegisterPage() {
         <div className="hidden md:block w-1/2 bg-gradient-to-br from-indigo-600 to-indigo-800 relative">
           <div className="absolute inset-0 flex items-center justify-center p-12">
             <div className="text-white max-w-lg">
-              <h2 className="text-4xl font-bold mb-4">Únete a la revolución digital</h2>
+              <h2 className="text-4xl font-bold mb-4">
+                Únete a la revolución digital
+              </h2>
               <p className="text-xl mb-8">
-                Accede a todas tus herramientas desde una única plataforma eficiente y segura.
+                Accede a todas tus herramientas desde una única plataforma
+                eficiente y segura.
               </p>
             </div>
           </div>
