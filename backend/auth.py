@@ -14,7 +14,7 @@ from db import get_db
 from models import User, LoginHistory
 from fastapi.responses import JSONResponse
 
-router = APIRouter()
+router = APIRouter(tags=["auth"])
 # /backend/auth.py
 
 
