@@ -1,11 +1,13 @@
 .next
 node_modules
 .venv
+node_modules
+.next
 __pycache__
 *.pyc
 *.pyo
 *.pyd
 *.pdb
 __init__
-alembic
-alembic.ini
+#alembic
+#alembic.ini
